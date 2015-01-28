@@ -15,4 +15,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :cd do |cd|
     cd.vm.provision :shell, inline: 'ansible-playbook /vagrant/ansible/cd.yml -c local'
   end
+  config.vm.define :prod do |prod|
+  end
 end
