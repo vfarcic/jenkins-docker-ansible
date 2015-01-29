@@ -56,6 +56,7 @@ What we want to do with Jenkins is following:
 
 * Checkout the code from the repository on every commit
 * Run tests that do not require the application to be deployed (static analysis, unit tests)
+* Build the assembly
 * Build the application as a Docker container
 * Deploy the application while maintaining the previous version operational and available for general use
 * Test the deployed application (functional, integration, stress, etc)
@@ -67,3 +68,7 @@ If we do this, we'll have the full lifecycle from commit to production deploymen
 Checkout the code from the repository on every commit
 -----------------------------------------------------
 
+
+
+TODO: Copy Jenkins plugins to Ansible files
+TODO: Copy Jenkins jobs to Ansible templates

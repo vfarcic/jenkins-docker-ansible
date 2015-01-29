@@ -8,7 +8,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network :forwarded_port, host: 8080, guest: 8080
   config.vm.synced_folder ".", "/vagrant"
   config.vm.provider "virtualbox" do |v|
-    v.name = "cd-workshop"
     v.memory = 2048
   end
   config.vm.provision "shell", path: "bootstrap.sh"
