@@ -69,6 +69,6 @@ Checkout the code from the repository on every commit
 -----------------------------------------------------
 
 
-
+TODO: Add /data/jenkins/slaves/cd to Ansible
 TODO: Copy Jenkins plugins to Ansible files
 TODO: Copy Jenkins jobs to Ansible templates

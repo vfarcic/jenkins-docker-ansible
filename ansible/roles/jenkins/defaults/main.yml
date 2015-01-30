@@ -1,0 +1,6 @@
+packages:
+  - 'openjdk-7-jdk'
+
+directories:
+  - '/data/jenkins'
+  - '/data/jenkins/slaves/cd'
