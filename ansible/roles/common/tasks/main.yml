@@ -1,0 +1,4 @@
+- name: ansible_cache_dir directory is present
+  file: path={{ ansible_cache_dir }} state=directory
+  sudo: yes
+  tags: [common]

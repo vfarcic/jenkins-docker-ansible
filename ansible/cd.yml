@@ -2,5 +2,7 @@
   remote_user: vagrant
   sudo: yes
   roles:
+    - common
+    - scala
     - docker
     - jenkins

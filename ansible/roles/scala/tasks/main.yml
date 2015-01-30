@@ -1,0 +1,12 @@
+- name: Packages are downloaded
+  get_url:
+    dest="{{ ansible_cache_dir }}"
+    url="{{ item }}"
+  with_items: package_urls
+  tags: [scala]
+
+- name: Packages are installed
+  apt:
+    deb="{{ item }}"
+  with_items: package_names
+  tags: [scala]

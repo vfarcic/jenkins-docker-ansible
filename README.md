@@ -30,13 +30,19 @@ We'll skip the first set of development environments since they will be done for
 CD Environment
 --------------
 
-We'll set up Jenkins environment using Vagrant and Ansible. Vagrant will create a VM with Ubuntu and run the bootstrap.sh script. The only purpose of that script is to install Ansible. Once that is done, Ansible will make sure that Docker is installed and Jenkins process is running. As everything else in this article, Jenkins itself is packed as a [Docker container](https://registry.hub.docker.com/u/vfarcic/jenkins/dockerfile/) and deployed with Ansible. Please consult the [Continuous Deployment: Implementation with Ansible and Docker](http://technologyconversations.com/2014/12/29/continuous-deployment-implementation-with-ansible-and-docker/) article for more info.
+We'll set up Jenkins environment using Vagrant and Ansible. Vagrant will create a VM with Ubuntu and run the bootstrap.sh script. The only purpose of that script is to install Ansible. Once that is done, Ansible will make sure that Docker is installed and Jenkins process is running. As everything else in this article, Jenkins itself is packed as a [Docker container](https://registry.hub.docker.com/u/vfarcic/jenkins/dockerfile/) and deployed with Ansible. Please consult the [Continuous Deployment: Implementation with Ansible and Docker](http://technologyconversations.com/2014/12/29/continuous-deployment-implementation-with-ansible-and-docker/) article for more info. Besides Jenkins, Ansible will install Scala and SBT that will be used to assemble artifacts.
 
 ```bash
 vagrant up cd
 ```
 
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
+
+TODO: Add /data/jenkins/slaves/cd directory to Ansible
+TODO: Convert jobs to templates and copy them to /data/jenkins directory
+TODO: Copy files to /data/jenkins directory
+TODO: Move Scala & SBT to Docker
+TODO: Write about the setup
 
 Production Environment
 ----------------------
@@ -67,8 +73,3 @@ If we do this, we'll have the full lifecycle from commit to production deploymen
 
 Checkout the code from the repository on every commit
 -----------------------------------------------------
-
-
-TODO: Add /data/jenkins/slaves/cd to Ansible
-TODO: Copy Jenkins plugins to Ansible files
-TODO: Copy Jenkins jobs to Ansible templates
