@@ -8,9 +8,38 @@
 
 - name: Packages are present
   apt:
-    name="{{ item }}"
+    name=openjdk-7-jdk
     state=present
   with_items: packages
+  tags: [jenkins]
+
+- name: Config files are present
+  copy:
+    src='{{ item }}'
+    dest='{{ jenkins_directory }}/{{ item }}'
+  with_items: configs
+  tags: [jenkins]
+
+- name: Plugins are present
+  get_url:
+    url='https://updates.jenkins-ci.org/{{ item }}'
+    dest='{{ jenkins_directory }}/plugins'
+  with_items: plugins
+  tags: [jenkins]
+
+- name: Job directories are present
+  file:
+    path='{{ jenkins_directory }}/jobs/{{ item }}'
+    state=directory
+  with_items: jobs
+  tags: [jenkins]
+
+- name: Job configs are present
+  template:
+    src=job.xml.j2
+    dest='{{ jenkins_directory }}/jobs/{{ item }}/config.xml'
+    backup=yes
+  with_items: jobs
   tags: [jenkins]
 
 - name: Container is running

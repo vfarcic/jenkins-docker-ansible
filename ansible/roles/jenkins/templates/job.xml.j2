@@ -5,14 +5,14 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.10">
-      <projectUrl>https://github.com/vfarcic/books-service/</projectUrl>
+      <projectUrl>https://github.com/vfarcic/{{ item }}/</projectUrl>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
   </properties>
   <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.4">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>https://github.com/vfarcic/books-service</url>
+        <url>https://github.com/vfarcic/{{ item }}</url>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
@@ -37,10 +37,11 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>sudo docker run -d --name mongodb -p 27017:27017 dockerfile/mongodb
-sbt assembly
-sudo docker rm -f mongodb
-sudo docker build -t books-service .</command>
+      <command>sudo docker run -t --rm \
+  -v $PWD:/source \
+  -v /data/.ivy2:/root/.ivy2/cache \
+  vfarcic/{{ item }}-tests
+sudo docker build -t vfarcic/{{ item }} .</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>

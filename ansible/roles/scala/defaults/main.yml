@@ -1,7 +1,0 @@
-package_urls:
-  - http://downloads.typesafe.com/scala/2.11.5/scala-2.11.5.deb
-  - https://dl.bintray.com/sbt/debian/sbt-0.13.6.deb
-
-package_names:
-  - '{{ ansible_cache_dir }}/scala-2.11.5.deb'
-  - '{{ ansible_cache_dir }}/sbt-0.13.6.deb'
