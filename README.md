@@ -39,8 +39,8 @@ vagrant up cd
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 
 TODO: Write about the setup
-TODO: Figure out how to add credentials to Jenkins
-TODO: Test push hook
+TODO: Explain that GitHub hook is not created
+TODO: Explain that credentials need to be added manually
 
 Production Environment
 ----------------------
