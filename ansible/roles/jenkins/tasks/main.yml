@@ -48,4 +48,5 @@
     url=http://localhost:8080/reload
     method=POST
     status_code=302
+  ignore_errors: yes
   tags: [jenkins]

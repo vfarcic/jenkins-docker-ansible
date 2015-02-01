@@ -117,12 +117,32 @@ It will run roles java, docker, registry and jenkins. Java is the Jenkins depend
   tags: [jenkins]
 ```
 
+First we create directories where Jenkins plugins and slaves will reside. In order to speed up building containers, we're also creating the directory where ivy files (used by SBT) will be stored on host. That way containers will not need to download all dependencies every time we build docker containers.
+
+Once directories are created, we copy Jenkins configuration files and download few plugins.
+
+Next are Jenkins jobs. Since all jobs are going to do the same thing, we have one template that will be used to create as many jobs as we need. Jobs will do following:
+
+* Clone the code repository from GitHub
+* Run following commands (example with books-service created in the [Microservices Development with Scala, Spray, Mongodb, Docker and Ansible](http://technologyconversations.com/2015/01/26/microservices-development-with-scala-spray-mongodb-docker-and-ansible/) article):
+** sudo docker build -t localhost:5000/books-service-tests docker/tests/
+** sudo docker push localhost:5000/books-service-tests
+** sudo docker run -t --rm \
+     -v $PWD:/source \
+     -v /data/.ivy2:/root/.ivy2/cache \
+     localhost:5000/books-service-tests
+** sudo docker build -t localhost:5000/books-service .
+** sudo docker push localhost:5000/books-service
+
+First we build the test container and push it to the private registry. Then we run tests. If previous command didn't fail, we'll build the books-service container and push it to the private registry. From here on, books-service is tested, built and ready to be deployed. 
+
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 
-TODO: Write about the setup
+TODO: Write about reasons behind this setup
 TODO: Explain that GitHub hook is not created
 TODO: Double check that credentials are working
 TODO: Mention complete source code.
+TODO: Write summary
 
 Production Environment
 ----------------------
