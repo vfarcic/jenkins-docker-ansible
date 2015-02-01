@@ -1,0 +1,13 @@
+- name: Directory is present
+  file:
+    path=/data/registry
+    state=directory
+  tags: [registry]
+
+- name: Container is running
+  docker:
+    name=registry
+    image=registry
+    ports=5000:5000
+    volumes=/data/registry:/tmp/registry
+  tags: [registry]

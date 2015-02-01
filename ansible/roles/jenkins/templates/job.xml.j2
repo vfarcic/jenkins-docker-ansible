@@ -40,8 +40,9 @@
       <command>sudo docker run -t --rm \
   -v $PWD:/source \
   -v /data/.ivy2:/root/.ivy2/cache \
-  vfarcic/{{ item }}-tests
-sudo docker build -t vfarcic/{{ item }} .</command>
+  localhost:5000/{{ item }}-tests
+sudo docker build -t localhost:5000/{{ item }} .
+sudo docker push localhost:5000/{{ item }}</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>

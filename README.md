@@ -38,12 +38,7 @@ vagrant up cd
 
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 
-TODO: Convert jobs to templates and copy them to /data/jenkins directory
-TODO: Download plugins to /data/jenkins directory
-TODO: Copy files to /data/jenkins directory
-TODO: sudo docker run -t --rm -v $PWD:/source -v /data/.ivy2:/root/.ivy2/cache books-service-tests
 TODO: Write about the setup
-TODO: Figure out how to restart Jenkins
 TODO: Figure out how to add credentials to Jenkins
 TODO: Test push hook
 
@@ -67,6 +62,7 @@ What we want to do with Jenkins is following:
 * Run tests that do not require the application to be deployed (static analysis, unit tests)
 * Build the assembly
 * Build the application as a Docker container
+* Push the container to the registry
 * Deploy the application while maintaining the previous version operational and available for general use
 * Test the deployed application (functional, integration, stress, etc)
 * Redirect the public traffic from the previous version to the new one.
@@ -76,3 +72,7 @@ If we do this, we'll have the full lifecycle from commit to production deploymen
 
 Checkout the code from the repository on every commit
 -----------------------------------------------------
+
+Normally this would require various installations on the Jenkins or a slave machine. If we are building different applications we would need to have everything needed for those builds installed (JDKs, Gradle, Maven, Python, NodeJS, DBs, etc). Managing dependencies needed for builds and tests execution can easily become overwhelming. On top of that, number of Jenkins jobs can easily become huge and unmanageable.
+
+With docker this can easily be simplified. Each project could have two Dockerfiles, one for testing and one for building the container with the actual application. All dependencies and scripts would be inside the container.

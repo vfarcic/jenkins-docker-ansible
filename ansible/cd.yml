@@ -3,4 +3,5 @@
   sudo: yes
   roles:
     - docker
+    - registry
     - jenkins

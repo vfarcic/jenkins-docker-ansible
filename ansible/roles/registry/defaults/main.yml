@@ -1,0 +1,21 @@
+jenkins_directory: /data/jenkins
+
+directories:
+  - '{{ jenkins_directory }}/plugins'
+  - '{{ jenkins_directory }}/slaves/cd'
+  - /data/.ivy2
+
+configs:
+  - config.xml
+
+plugins:
+  - latest/github.hpi
+  - latest/git.hpi
+  - latest/credentials.hpi
+  - latest/scm-api.hpi
+  - latest/matrix-project.hpi
+  - latest/git-client.hpi
+  - latest/github-api.hpi
+
+jobs:
+  - books-service

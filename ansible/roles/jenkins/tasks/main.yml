@@ -49,3 +49,10 @@
     ports=8080:8080
     volumes=/data/jenkins:/jenkins
   tags: [jenkins]
+
+- name: Reload
+  uri:
+    url=http://localhost:8080/reload
+    method=POST
+  ignore_errors: yes
+  tags: [jenkins]

@@ -1,7 +1,0 @@
-github
-git
-credentials
-scp-api
-matrix-project
-git-client
-github-api
