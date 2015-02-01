@@ -7,6 +7,8 @@ directories:
 
 configs:
   - config.xml
+  - credentials.xml
+  - secret.key
 
 plugins:
   - latest/github.hpi

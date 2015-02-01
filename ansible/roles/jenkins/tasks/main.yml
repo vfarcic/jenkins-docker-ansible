@@ -6,13 +6,6 @@
   with_items: directories
   tags: [jenkins]
 
-- name: Packages are present
-  apt:
-    name=openjdk-7-jdk
-    state=present
-  with_items: packages
-  tags: [jenkins]
-
 - name: Config files are present
   copy:
     src='{{ item }}'
@@ -20,12 +13,12 @@
   with_items: configs
   tags: [jenkins]
 
-- name: Plugins are present
-  get_url:
-    url='https://updates.jenkins-ci.org/{{ item }}'
-    dest='{{ jenkins_directory }}/plugins'
-  with_items: plugins
-  tags: [jenkins]
+#- name: Plugins are present
+#  get_url:
+#    url='https://updates.jenkins-ci.org/{{ item }}'
+#    dest='{{ jenkins_directory }}/plugins'
+#  with_items: plugins
+#  tags: [jenkins]
 
 - name: Job directories are present
   file:
@@ -54,5 +47,6 @@
   uri:
     url=http://localhost:8080/reload
     method=POST
+    status_code=302
   ignore_errors: yes
   tags: [jenkins]

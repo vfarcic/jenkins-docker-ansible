@@ -33,7 +33,10 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>sudo docker run -t --rm \
+      <command>
+sudo docker build -t localhost:5000/{{ item }}-tests docker/tests/
+sudo docker push localhost:5000/{{ item }}-tests
+sudo docker run -t --rm \
   -v $PWD:/source \
   -v /data/.ivy2:/root/.ivy2/cache \
   localhost:5000/{{ item }}-tests

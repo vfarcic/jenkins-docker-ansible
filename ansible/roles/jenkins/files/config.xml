@@ -26,11 +26,29 @@
       <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.9">
         <host>172.17.42.1</host>
         <port>22</port>
-        <credentialsId>eee86def-a4a7-49b4-9ad4-ba7dced1bc53</credentialsId>
+        <credentialsId>8a7a72e9-f10a-40f3-9d7e-d5cc4026c963</credentialsId>
         <maxNumRetries>0</maxNumRetries>
         <retryWaitTime>0</retryWaitTime>
       </launcher>
       <label>cd</label>
+      <nodeProperties/>
+      <userId>anonymous</userId>
+    </slave>
+    <slave>
+      <name>Prod</name>
+      <description></description>
+      <remoteFS>/data/jenkins/slaves/prod</remoteFS>
+      <numExecutors>1</numExecutors>
+      <mode>NORMAL</mode>
+      <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+      <launcher class="hudson.plugins.sshslaves.SSHLauncher" plugin="ssh-slaves@1.9">
+        <host>192.168.50.2</host>
+        <port>22</port>
+        <credentialsId>8a7a72e9-f10a-40f3-9d7e-d5cc4026c963</credentialsId>
+        <maxNumRetries>0</maxNumRetries>
+        <retryWaitTime>0</retryWaitTime>
+      </launcher>
+      <label>prod</label>
       <nodeProperties/>
       <userId>anonymous</userId>
     </slave>

@@ -40,7 +40,7 @@ Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 
 TODO: Write about the setup
 TODO: Explain that GitHub hook is not created
-TODO: Explain that credentials need to be added manually
+TODO: Double check that credentials are working
 
 Production Environment
 ----------------------
