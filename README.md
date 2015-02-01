@@ -30,10 +30,91 @@ We'll skip the first set of development environments since they will be done for
 CD Environment
 --------------
 
-We'll set up Jenkins environment using Vagrant and Ansible. Vagrant will create a VM with Ubuntu and run the bootstrap.sh script. The only purpose of that script is to install Ansible. Once that is done, Ansible will make sure that Docker is installed and Jenkins process is running. As everything else in this article, Jenkins itself is packed as a [Docker container](https://registry.hub.docker.com/u/vfarcic/jenkins/dockerfile/) and deployed with Ansible. Please consult the [Continuous Deployment: Implementation with Ansible and Docker](http://technologyconversations.com/2014/12/29/continuous-deployment-implementation-with-ansible-and-docker/) article for more info.
+We'll set up Jenkins environment using Vagrant and Ansible. Vagrant will create a VM with Ubuntu and run the [bootstrap.sh](https://github.com/vfarcic/cd-workshop/blob/master/bootstrap.sh) script. The only purpose of that script is to install Ansible. Once that is done, Ansible will make sure that Docker is installed and Jenkins process is running.
+
+As everything else in this article, Jenkins itself is packed as a [Docker container](https://registry.hub.docker.com/u/vfarcic/jenkins/dockerfile/) and deployed with Ansible. Please consult the [Continuous Deployment: Implementation with Ansible and Docker](http://technologyconversations.com/2014/12/29/continuous-deployment-implementation-with-ansible-and-docker/) article for more info.
 
 ```bash
 vagrant up cd
+```
+
+Two key lines in the Vagrantfile are:
+
+```bash
+config.vm.provision "shell", path: "bootstrap.sh"
+...
+prod.vm.provision :shell, inline: 'ansible-playbook /vagrant/ansible/cd.yml -c local'
+```
+
+First one runs the [bootstrap.sh](https://github.com/vfarcic/cd-workshop/blob/master/bootstrap.sh) script that install Ansible. We could use the [Vagrant Ansible Provisioner](https://docs.vagrantup.com/v2/provisioning/ansible.html) but that would require Ansible to be installed on the host machine. That is unnecessary dependency especially for Windows users who would have a hard time to setup Ansible.
+
+Once [bootstrap.sh](https://github.com/vfarcic/cd-workshop/blob/master/bootstrap.sh) is finished, Ansible playbook [cd.yml](https://github.com/vfarcic/cd-workshop/blob/master/ansible/cd.yml) is run.
+ 
+```bash
+- hosts: localhost
+  remote_user: vagrant
+  sudo: yes
+  roles:
+    - java
+    - docker
+    - registry
+    - jenkins
+```
+
+It will run roles java, docker, registry and jenkins. Java is the Jenkins dependency required for running slaves. Docker is needed for building and running containers. All the rest will run as Docker containers. There will be no other dependency, package or application that will be installed directly. Registry role runs Docker registry. Instead of using public one on hub.docker.com, we'll push all our containers to the private Docker registry running on port 5000. Finally, role jenkins is run. This one might require a bit more explanation. Here's the list of tasks in the jenkins role.
+
+```bash
+- name: Directories are present
+  file:
+    path="{{ item }}"
+    state=directory
+    mode=777
+  with_items: directories
+  tags: [jenkins]
+
+- name: Config files are present
+  copy:
+    src='{{ item }}'
+    dest='{{ jenkins_directory }}/{{ item }}'
+  with_items: configs
+  tags: [jenkins]
+
+- name: Plugins are present
+  get_url:
+    url='https://updates.jenkins-ci.org/{{ item }}'
+    dest='{{ jenkins_directory }}/plugins'
+  with_items: plugins
+  tags: [jenkins]
+
+- name: Job directories are present
+  file:
+    path='{{ jenkins_directory }}/jobs/{{ item }}'
+    state=directory
+  with_items: jobs
+  tags: [jenkins]
+
+- name: Job configs are present
+  template:
+    src=job.xml.j2
+    dest='{{ jenkins_directory }}/jobs/{{ item }}/config.xml'
+    backup=yes
+  with_items: jobs
+  tags: [jenkins]
+
+- name: Container is running
+  docker:
+    name=jenkins
+    image=vfarcic/jenkins
+    ports=8080:8080
+    volumes=/data/jenkins:/jenkins
+  tags: [jenkins]
+
+- name: Reload
+  uri:
+    url=http://localhost:8080/reload
+    method=POST
+    status_code=302
+  tags: [jenkins]
 ```
 
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
@@ -41,6 +122,7 @@ Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 TODO: Write about the setup
 TODO: Explain that GitHub hook is not created
 TODO: Double check that credentials are working
+TODO: Mention complete source code.
 
 Production Environment
 ----------------------
