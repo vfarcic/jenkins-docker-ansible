@@ -63,67 +63,15 @@ Once [bootstrap.sh](https://github.com/vfarcic/cd-workshop/blob/master/bootstrap
     - jenkins
 ```
 
-It will run roles java, docker, registry and jenkins. Java is the Jenkins dependency required for running slaves. Docker is needed for building and running containers. All the rest will run as Docker containers. There will be no other dependency, package or application that will be installed directly. Registry role runs Docker registry. Instead of using public one on hub.docker.com, we'll push all our containers to the private Docker registry running on port 5000. Finally, role jenkins is run. This one might require a bit more explanation. Here's the list of tasks in the jenkins role.
+It will run roles java, docker, registry and jenkins. Java is the Jenkins dependency required for running slaves. Docker is needed for building and running containers. All the rest will run as Docker containers. There will be no other dependency, package or application that will be installed directly. Registry role runs Docker registry. Instead of using public one on hub.docker.com, we'll push all our containers to the private registry running on port 5000. Finally, jenkins role is run. This one might require a bit more explanation. Here's the list of tasks in the jenkins role.
 
-```bash
-- name: Directories are present
-  file:
-    path="{{ item }}"
-    state=directory
-    mode=777
-  with_items: directories
-  tags: [jenkins]
-
-- name: Config files are present
-  copy:
-    src='{{ item }}'
-    dest='{{ jenkins_directory }}/{{ item }}'
-  with_items: configs
-  tags: [jenkins]
-
-- name: Plugins are present
-  get_url:
-    url='https://updates.jenkins-ci.org/{{ item }}'
-    dest='{{ jenkins_directory }}/plugins'
-  with_items: plugins
-  tags: [jenkins]
-
-- name: Job directories are present
-  file:
-    path='{{ jenkins_directory }}/jobs/{{ item }}'
-    state=directory
-  with_items: jobs
-  tags: [jenkins]
-
-- name: Job configs are present
-  template:
-    src=job.xml.j2
-    dest='{{ jenkins_directory }}/jobs/{{ item }}/config.xml'
-    backup=yes
-  with_items: jobs
-  tags: [jenkins]
-
-- name: Container is running
-  docker:
-    name=jenkins
-    image=vfarcic/jenkins
-    ports=8080:8080
-    volumes=/data/jenkins:/jenkins
-  tags: [jenkins]
-
-- name: Reload
-  uri:
-    url=http://localhost:8080/reload
-    method=POST
-    status_code=302
-  tags: [jenkins]
-```
+TODO: Describe Jenkins role
 
 First we create directories where Jenkins plugins and slaves will reside. In order to speed up building containers, we're also creating the directory where ivy files (used by SBT) will be stored on host. That way containers will not need to download all dependencies every time we build docker containers.
 
 Once directories are created, we copy Jenkins configuration files and download few plugins.
 
-Next are Jenkins jobs. Since all jobs are going to do the same thing, we have one template that will be used to create as many jobs as we need. Jobs will do following:
+Next are Jenkins jobs. Since all jobs are going to do the same thing, we have two templates that will be used to create as many jobs as we need. One template is for testing and building and the other for deployment. Build jobs will do following:
 
 * Clone the code repository from GitHub
 * Run following commands (example with books-service created in the [Microservices Development with Scala, Spray, Mongodb, Docker and Ansible](http://technologyconversations.com/2015/01/26/microservices-development-with-scala-spray-mongodb-docker-and-ansible/) article):
@@ -138,9 +86,13 @@ Next are Jenkins jobs. Since all jobs are going to do the same thing, we have on
 
 First we build the test container and push it to the private registry. Then we run tests. If previous command didn't fail, we'll build the books-service container and push it to the private registry. From here on, books-service is tested, built and ready to be deployed.
 
-Before Docker, all my Jenkins servers ended up with a huge number of jobs. Many of them were different due to different architectures of software they we building. Managing a log of different jobs easily becomes very tiring and prone to errors. And it's not only jobs that become complicated very fast. Managing slaves and dependencies they need to have often requires a lot of time.
+Deployment jobs simply run Ansible role that corresponds to the application we're deploying.
 
-With Docker comes simplicity. If we can assume that each project will have its own tests and application containers, all jobs can do the same thing. Build the test container and run it. If nothing fails, build the application container and deploy it. All projects can be exactly the same if we can assume that each of them has their own docker files. Another advantage is that there's nothing to be installed on servers (besides Docker). All they need is Docker that will run containers we tell him to run.
+TODO: Describe books-service role
+
+Before Docker, all my Jenkins servers ended up with a huge number of jobs. Many of them were different due to different architectures of software they were building. Managing a log of different jobs easily becomes very tiring and prone to errors. And it's not only jobs that become complicated very fast. Managing slaves and dependencies they need to have often requires a lot of time.
+
+With Docker comes simplicity. If we can assume that each project will have its own tests and application containers, all jobs can do the same thing. Build the test container and run it. If nothing fails, build the application container and deploy it. All projects can be exactly the same if we can assume that each of them have their own docker files. Another advantage is that there's nothing to be installed on servers (besides Docker). All they need is Docker that will run containers we tell him to run.
 
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 
