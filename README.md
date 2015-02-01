@@ -140,16 +140,18 @@ First we build the test container and push it to the private registry. Then we r
 
 Before Docker, all my Jenkins servers ended up with a huge number of jobs. Many of them were different due to different architectures of software they we building. Managing a log of different jobs easily becomes very tiring and prone to errors. And it's not only jobs that become complicated very fast. Managing slaves and dependencies they need to have often requires a lot of time.
 
-With Docker comes simplicity. If we can assume that each project will have the corresponding tests container, all jobs can do the same thing. Build the test container and run it. If nothing fails, build the application and deploy it. All projects can be exactly the same if we can assume that each of them has their own docker files. Another advantage is that there's nothing to be installed on servers. All they need is Docker that will run containers we tell him to run.
+With Docker comes simplicity. If we can assume that each project will have its own tests and application containers, all jobs can do the same thing. Build the test container and run it. If nothing fails, build the application container and deploy it. All projects can be exactly the same if we can assume that each of them has their own docker files. Another advantage is that there's nothing to be installed on servers (besides Docker). All they need is Docker that will run containers we tell him to run.
 
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 
-TODO: Deployment
+TODO: Blue-Green Deployment
 TODO: Write about reasons behind this setup
 TODO: Explain that GitHub hook is not created
 TODO: Double check that credentials are working
 TODO: Mention complete source code.
 TODO: Write summary
+TODO: ssh-keygen & ssh-copy-id
+TODO: Walkthrough Jenkins UI
 
 Production Environment
 ----------------------

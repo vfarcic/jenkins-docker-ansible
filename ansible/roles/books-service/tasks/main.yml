@@ -1,0 +1,13 @@
+- name: Directory is present
+  file:
+    path=/data/books-service/db
+    state=directory
+  tags: [books-service]
+
+- name: Container is running
+  docker:
+    name=books-service
+    image=192.168.50.1:5000/books-service
+    ports=9001:8080
+    volumes=/data/books-service/db:/data/db
+  tags: [books-service]

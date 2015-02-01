@@ -20,17 +20,32 @@
   with_items: plugins
   tags: [jenkins]
 
-- name: Job directories are present
+- name: Build job directories are present
   file:
     path='{{ jenkins_directory }}/jobs/{{ item }}'
     state=directory
   with_items: jobs
   tags: [jenkins]
 
-- name: Job configs are present
+- name: Build jobs are present
   template:
-    src=job.xml.j2
+    src=build.xml.j2
     dest='{{ jenkins_directory }}/jobs/{{ item }}/config.xml'
+    backup=yes
+  with_items: jobs
+  tags: [jenkins]
+
+- name: Deployment job directories are present
+  file:
+    path='{{ jenkins_directory }}/jobs/{{ item }}-deployment'
+    state=directory
+  with_items: jobs
+  tags: [jenkins]
+
+- name: Deployment jobs are present
+  template:
+    src=deployment.xml.j2
+    dest='{{ jenkins_directory }}/jobs/{{ item }}-deployment/config.xml'
     backup=yes
   with_items: jobs
   tags: [jenkins]
