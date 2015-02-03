@@ -90,9 +90,11 @@ Deployment jobs simply run Ansible role that corresponds to the application we'r
 
 TODO: Describe books-service role
 
-Before Docker, all my Jenkins servers ended up with a huge number of jobs. Many of them were different due to different architectures of software they were building. Managing a log of different jobs easily becomes very tiring and prone to errors. And it's not only jobs that become complicated very fast. Managing slaves and dependencies they need to have often requires a lot of time.
+Before Docker, all my Jenkins servers ended up with a huge number of jobs. Many of them were different due to variety of architectures of software they were building. Managing a lot of different jobs easily becomes very tiring and prone to errors. And it's not only jobs that become complicated very fast. Managing slaves and dependencies they need to have often requires a lot of time.
 
-With Docker comes simplicity. If we can assume that each project will have its own tests and application containers, all jobs can do the same thing. Build the test container and run it. If nothing fails, build the application container and deploy it. All projects can be exactly the same if we can assume that each of them have their own docker files. Another advantage is that there's nothing to be installed on servers (besides Docker). All they need is Docker that will run containers we tell him to run.
+With Docker comes simplicity. If we can assume that each project will have its own tests and application containers. If that's the case, all jobs can do the same thing. Build the test container and run it. If nothing fails, build the application container and push it to the registry. Finally, deploy it. All projects can be exactly the same if we can assume that each of them have their own docker files. Another advantage is that there's nothing to be installed on servers (besides Docker). All they need is Docker that will run containers we tell them to run.
+
+TODO: Deployment is not easy so we use Ansible
 
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 
