@@ -22,4 +22,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     prod.vm.network "private_network", ip: "192.168.50.2"
     prod.vm.provision :shell, inline: 'ansible-playbook /vagrant/ansible/prod.yml -c local'
   end
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :machine
+  end
 end

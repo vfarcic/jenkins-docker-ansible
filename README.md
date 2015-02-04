@@ -86,15 +86,14 @@ Next are Jenkins jobs. Since all jobs are going to do the same thing, we have tw
 
 First we build the test container and push it to the private registry. Then we run tests. If previous command didn't fail, we'll build the books-service container and push it to the private registry. From here on, books-service is tested, built and ready to be deployed.
 
-Deployment jobs simply run Ansible role that corresponds to the application we're deploying.
-
-TODO: Describe books-service role
-
 Before Docker, all my Jenkins servers ended up with a huge number of jobs. Many of them were different due to variety of architectures of software they were building. Managing a lot of different jobs easily becomes very tiring and prone to errors. And it's not only jobs that become complicated very fast. Managing slaves and dependencies they need to have often requires a lot of time.
 
 With Docker comes simplicity. If we can assume that each project will have its own tests and application containers. If that's the case, all jobs can do the same thing. Build the test container and run it. If nothing fails, build the application container and push it to the registry. Finally, deploy it. All projects can be exactly the same if we can assume that each of them have their own docker files. Another advantage is that there's nothing to be installed on servers (besides Docker). All they need is Docker that will run containers we tell them to run.
 
-TODO: Deployment is not easy so we use Ansible
+Unlike builds that are always the same (build with the specification from Dockerfile), deployment tends to get a bit more complicated. Even though applications are immutable and packed in container, there are still few configuration files, environment variables and/or volumes to be set. That's where Ansible comes handy. We can have every deployment job in Jenkins the same with only name of the Ansible playbook differing. Deployment jobs simply run Ansible role that corresponds to the application we're deploying. It's still fairly simple in most cases. The difference when compared to deploying applications without Docker is huge. While with Docker we need to think only about data (application and all dependencies are packed inside containers), without it we would need not only to think what to install, what to update and how those changes might affect the rest of applications running on the same server or VM. That's one of the reasons why companies tend not to change their technology stack and, for example, still stick with Java 5 (or worse).
+
+TODO: Describe books-service role
+
 
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 
