@@ -90,21 +90,16 @@ Before Docker, all my Jenkins servers ended up with a huge number of jobs. Many 
 
 With Docker comes simplicity. If we can assume that each project will have its own tests and application containers. If that's the case, all jobs can do the same thing. Build the test container and run it. If nothing fails, build the application container and push it to the registry. Finally, deploy it. All projects can be exactly the same if we can assume that each of them have their own docker files. Another advantage is that there's nothing to be installed on servers (besides Docker). All they need is Docker that will run containers we tell them to run.
 
-Unlike builds that are always the same (build with the specification from Dockerfile), deployment tends to get a bit more complicated. Even though applications are immutable and packed in container, there are still few configuration files, environment variables and/or volumes to be set. That's where Ansible comes handy. We can have every deployment job in Jenkins the same with only name of the Ansible playbook differing. Deployment jobs simply run Ansible role that corresponds to the application we're deploying. It's still fairly simple in most cases. The difference when compared to deploying applications without Docker is huge. While with Docker we need to think only about data (application and all dependencies are packed inside containers), without it we would need not only to think what to install, what to update and how those changes might affect the rest of applications running on the same server or VM. That's one of the reasons why companies tend not to change their technology stack and, for example, still stick with Java 5 (or worse).
+Unlike build jobs that are always the same (build with the specification from Dockerfile), deployments tends to get a bit more complicated. Even though applications are immutable and packed in containers, there are still few configuration files, environment variables and/or volumes to be set. That's where Ansible comes handy. We can have every deployment job in Jenkins the same with only name of the Ansible playbook differing. Deployment jobs simply run Ansible role that corresponds to the application we're deploying. It's still fairly simple in most cases. The difference when compared to deploying applications without Docker is huge. While with Docker we need to think only about data (application and all dependencies are packed inside containers), without it we would need not only to think what to install, what to update and how those changes might affect the rest of applications running on the same server or VM. That's one of the reasons why companies tend not to change their technology stack and, for example, still stick with Java 5 (or worse).
 
 TODO: Describe books-service role
 
-
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 
-TODO: Blue-Green Deployment
+TODO: Explain credentials
 TODO: Write about reasons behind this setup
 TODO: Explain that GitHub hook is not created
-TODO: Double check that credentials are working
-TODO: Mention complete source code.
-TODO: Write summary
-TODO: ssh-keygen & ssh-copy-id
-TODO: Walkthrough Jenkins UI
+TODO: Walk-through Jenkins UI
 
 Production Environment
 ----------------------
@@ -115,22 +110,32 @@ In order to simulate closer to reality situation, production environment will be
 vagrant up prod
 ```
 
+TODO: ssh-keygen & ssh-copy-id for the prod VM
+TODO: Mention complete source code.
+TODO: Explain how to create new jobs
+TODO: Write summary
+TODO: Mention that post-deployment tests will be explained in another article
+TODO: Mention that Blue-Green Deployment will be explained in another article
+
 Books Microservice
 ==================
+
+TODO: Move above Environments
 
 The first piece of code we'll develop, test, build and deploy is the service that will provide RESTful JSON operations related to retrieval and administration of books. The code for this service is already available at [books-service repo](https://github.com/vfarcic/books-service). It is developed using [Scala](http://www.scala-lang.org/) with [Spray](http://spray.io/) and [MongoDB](http://www.mongodb.org/) for data storage. For more information about this service, please consult [Microservices Development with Scala, Spray, MongoDB, Docker and Ansible](http://technologyconversations.com/2015/01/26/microservices-development-with-scala-spray-mongodb-docker-and-ansible/) article.
 
 What we want to do with Jenkins is following:
 
+* Setup CD and production environments
 * Checkout the code from the repository on every commit
 * Run tests that do not require the application to be deployed (static analysis, unit tests)
 * Build the assembly
 * Build the application as a Docker container
 * Push the container to the registry
-* Deploy the application while maintaining the previous version operational and available for general use
-* Test the deployed application (functional, integration, stress, etc)
-* Redirect the public traffic from the previous version to the new one.
-* Stop the previous version from running
+* TODO: Deploy the application while maintaining the previous version operational and available for general use
+* TODO: Test the deployed application (functional, integration, stress, etc)
+* TODO: Redirect the public traffic from the previous version to the new one.
+* TODO: Stop the previous version from running
 
 If we do this, we'll have the full lifecycle from commit to production deployment without any manual action in between. Let's start!
 
@@ -140,3 +145,9 @@ Checkout the code from the repository on every commit
 Normally this would require various installations on the Jenkins or a slave machine. If we are building different applications we would need to have everything needed for those builds installed (JDKs, Gradle, Maven, Python, NodeJS, DBs, etc). Managing dependencies needed for builds and tests execution can easily become overwhelming. On top of that, number of Jenkins jobs can easily become huge and unmanageable.
 
 With docker this can easily be simplified. Each project could have two Dockerfiles, one for testing and one for building the container with the actual application. All dependencies and scripts would be inside the container.
+
+
+
+
+
+TODO: Front-End
