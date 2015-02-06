@@ -97,9 +97,9 @@ TODO: Describe books-service role
 Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
 
 TODO: Explain credentials
-TODO: Write about reasons behind this setup
-TODO: Explain that GitHub hook is not created
 TODO: Walk-through Jenkins UI
+TODO: Explain that GitHub hook is not created
+TODO: Write about reasons behind this setup
 
 Production Environment
 ----------------------
