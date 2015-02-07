@@ -71,18 +71,18 @@ First we create directories where Jenkins plugins and slaves will reside. In ord
 
 Once directories are created, we copy Jenkins configuration files and download few plugins.
 
-Next are Jenkins jobs. Since all jobs are going to do the same thing, we have two templates that will be used to create as many jobs as we need. One template is for testing and building and the other for deployment. Build jobs will do following:
+Next are Jenkins jobs. Since all jobs are going to do the same thing, we have two templates that will be used to create as many jobs as we need. One template is for building and the other one for deployment. Build jobs will clone the code repository from GitHub and run following commands (example with books-service created in the [Microservices Development with Scala, Spray, Mongodb, Docker and Ansible](http://technologyconversations.com/2015/01/26/microservices-development-with-scala-spray-mongodb-docker-and-ansible/) article):
 
-* Clone the code repository from GitHub
-* Run following commands (example with books-service created in the [Microservices Development with Scala, Spray, Mongodb, Docker and Ansible](http://technologyconversations.com/2015/01/26/microservices-development-with-scala-spray-mongodb-docker-and-ansible/) article):
-** sudo docker build -t localhost:5000/books-service-tests docker/tests/
-** sudo docker push localhost:5000/books-service-tests
-** sudo docker run -t --rm \
-     -v $PWD:/source \
-     -v /data/.ivy2:/root/.ivy2/cache \
-     localhost:5000/books-service-tests
-** sudo docker build -t localhost:5000/books-service .
-** sudo docker push localhost:5000/books-service
+```bash
+sudo docker build -t localhost:5000/books-service-tests docker/tests/
+sudo docker push localhost:5000/books-service-tests
+sudo docker run -t --rm \
+  -v $PWD:/source \
+  -v /data/.ivy2:/root/.ivy2/cache \
+  localhost:5000/books-service-tests
+sudo docker build -t localhost:5000/books-service .
+sudo docker push localhost:5000/books-service
+```
 
 First we build the test container and push it to the private registry. Then we run tests. If previous command didn't fail, we'll build the books-service container and push it to the private registry. From here on, books-service is tested, built and ready to be deployed.
 
@@ -94,28 +94,73 @@ Unlike build jobs that are always the same (build with the specification from Do
 
 TODO: Describe books-service role
 
-Now we can open [http://localhost:8080](http://localhost:8080) and use Jenkins.
+Now we can open [http://localhost:8080](http://localhost:8080) and (almost) use Jenkins. Ansible tasks did not create credentials so we'll have to do that manually.
 
-TODO: Explain credentials
+* Click "Manage Jenkins" > "Manage Nodes" > "CD" > "Configure".
+* Click "Add" button in the "Credentials" Section.
+* Type "vagrant" as both username and password and click the "Add" button.
+* Select the newly created key int the "Credentials" section.
+* Click the "Save" and, finally, the "Launch slave agent" buttons
+
+This could probably be automated as well but, for security reasons I prefer doing this step manually.
+
+Now the CD slave is launched. It's pointing to the CD VM we created and will be used for all our jobs (event when deployed should be done on a separate machine).
+
+We are ready to run the books-service job that was explained earlier. From the Jenkins home page, click "books-service" link and then "Build Now". Progress can be seen in the "Build History" section. "Console Output" inside the build (in this case #1) can be used to see logs. Building Docker containers for the first time can take some time. Once this job is finished it will run the "books-service-deployment". However, we still don't have the production environment VM and the Ansible playbook run by the Jenkins job will fail to connect to it. We'll get back to this soon.
+ 
+Major advantages to this kind of setup is that there is no need to install anything besides Docker on the CD server since everything is run through containers. There will be no headache provoked by installations of all kinds of libraries and frameworks required for compilation and execution of tests. There will be no conflicts between different versions of the same dependency. Finally, Jenkins jobs are going to be very simple since all the logic resides in Docker files in the repositories of applications that should be built, tested and deployed. In other words, simple and painless setup that will be easy to maintain no matter how many projects/applications Jenkins will need to manage.
+
+If naming conventions are used (as in this example), creating new jobs is very easy. All there is to be done is to add new variable to the Ansible configuration file ansible/roles/jenkins/defaults/main.yml and run **vagrant provision cd** or directly **ansible-playbook /vagrant/ansible/prod.yml -c local** from the CD VM.
+
+Here's an example of jobs variable:
+
+```bash
+jobs:
+  - books-service
+  - users-service
+  - shopping-cart-service
+  - books-ui
+```
+
+books-service job is scheduled to pull code from the repository every 5 minutes. This consumes resources and is slow. Better setup is to have a GitHub hook. With it build would be launched almost immediately after each push to the repository. More info can be found in the [GitHub Plugin](https://wiki.jenkins-ci.org/display/JENKINS/GitHub+Plugin#GitHubPlugin-TriggerabuildwhenachangeispushedtoGitHub) page. Similar setup can be done for almost any other type of code repository.
+
 TODO: Walk-through Jenkins UI
-TODO: Explain that GitHub hook is not created
-TODO: Write about reasons behind this setup
 
 Production Environment
 ----------------------
 
-In order to simulate closer to reality situation, production environment will be a separate VM. At the moment we don't need anything installed on that VM. Later on, Jenkins will run Ansible that will make sure that the server is setup correctly before deploying the application. We'll create this environment in the same way as the previous one.
+In order to simulate closer to reality situation, production environment will be a separate VM. At the moment we don't need anything installed on that VM. Later on, Jenkins will run Ansible that will make sure that the server is setup correctly for each application we deploy. We'll create this environment in the same way as the previous one.
 
 ```bash
 vagrant up prod
 ```
 
-TODO: ssh-keygen & ssh-copy-id for the prod VM
-TODO: Mention complete source code.
-TODO: Explain how to create new jobs
-TODO: Write summary
-TODO: Mention that post-deployment tests will be explained in another article
-TODO: Mention that Blue-Green Deployment will be explained in another article
+Now, with the production environment up and running, all that's missing is to generate SSH keys and import them to the CD VM. 
+
+```bash
+vagrant ssh prod
+ssh-keygen # Simply press enter to all questions
+exit
+vagrant ssh cd
+ssh-keygen # Simply press enter to all questions
+ssh-copy-id 192.168.50.92 # Password is "vagrant"
+```
+
+That's about it. Now we have an production VM where we can deploy applications. We can go back to Jenkins ([http://localhost:8080](http://localhost:8080)) and run the "books-service-deployment" job. When finished, service will be up and running on the port 9001.
+
+Summary
+-------
+
+I hope you enjoyed setting up the Continuous Delivery/Deployment server. With Docker we can explore new was to build, test and deploy applications. One of the many benefits of containers is simplicity due to their immutability and self sufficiency. There are no reasons any more to have servers with huge number of packages installed. No more going through the hell of maintaining different versions required by different applications or spinning up new VM for every single application that should be tested or deployed.
+
+But it's not only servers provisioning that got simplified with Docker. Ability to provide Docker file with each application means that Jenkins setup is greatly simplified. Instead of having tens, hundreds or even thousands of jobs with each of them specific to the application they are building, testing and deploying, we can simply make all (or most of) Jenkins jobs the same. Build with Dockerfile file, test with Dockerfile and, finally, deploy with Ansible (that also uses Dockerfile).
+
+We didn't touch the subject of post-deployment (functional, integration, stress, etc) tests that are required for successful Continuous Delivery and/or Deployment. We're also missing the way to deploy the application with zero-downtime. Both will be the subject of the next article that will continue where we left.
+
+Source code for this article can be found in [cd-workshop](https://github.com/vfarcic/cd-workshop) repository.
+
+TODO: Change repo URL
+TODO: Add pictures
 
 Books Microservice
 ==================
