@@ -4,10 +4,22 @@
     state=directory
   tags: [books-service]
 
+- name: Latest container is pulled
+  shell: sudo docker pull 192.168.50.91:5000/books-service
+  tags: [books-service]
+
+- name: Container is absent
+  docker:
+    image=192.168.50.91:5000/books-service
+    name=books-service
+    state=absent
+  tags: [books-service]
+
 - name: Container is running
   docker:
     name=books-service
     image=192.168.50.91:5000/books-service
     ports=9001:8080
     volumes=/data/books-service/db:/data/db
+    state=running
   tags: [books-service]

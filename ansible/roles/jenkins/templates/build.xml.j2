@@ -33,20 +33,20 @@
     <hudson.triggers.SCMTrigger>
       <spec>H/5 * * * *</spec>
       <ignorePostCommitHooks>false</ignorePostCommitHooks>
-    <//hudson.triggers.SCMTrigger>
+    </hudson.triggers.SCMTrigger>
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
       <command>
-sudo docker build -t localhost:5000/{{ item }}-tests docker/tests/
-sudo docker push localhost:5000/{{ item }}-tests
+sudo docker build -t 192.168.50.91:5000/{{ item }}-tests docker/tests/
+sudo docker push 192.168.50.91:5000/{{ item }}-tests
 sudo docker run -t --rm \
   -v $PWD:/source \
   -v /data/.ivy2:/root/.ivy2/cache \
   localhost:5000/{{ item }}-tests
-sudo docker build -t localhost:5000/{{ item }} .
-sudo docker push localhost:5000/{{ item }}</command>
+sudo docker build -t 192.168.50.91:5000/{{ item }} .
+sudo docker push 192.168.50.91:5000/{{ item }}</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>

@@ -14,9 +14,9 @@
   tags: [jenkins]
 
 - name: Plugins are present
-  get_url:
-    url='https://updates.jenkins-ci.org/{{ item }}'
-    dest='{{ jenkins_directory }}/plugins'
+  copy:
+    src='{{ item }}'
+    dest='{{ jenkins_directory }}/plugins/{{ item }}'
   with_items: plugins
   tags: [jenkins]
 

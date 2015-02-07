@@ -1,4 +1,4 @@
-This series will try to provide one possible way to develop applications. We'll go through the full applications lifecycle. We'll define high-level requirements and design, use BDD to define executable requirements and develop using TDD. Architecture will be based on Microservices and the whole process will be backed by continuous deployment. Every commit to the repository will be deployed to production if it passed all tests. We'll programm in JavaScript backed by AngularJS and Scala with Spray. Configuration management will be done with Ansible. Microservices and front-end will be built and deployed with Docker. Depending on where this leads us, there will be many other surprises on the way.
+This series tries to provide one possible way to develop applications. We'll go through the full applications lifecycle. We'll define high-level requirements and design, use BDD to define executable requirements and develop using TDD. Architecture will be based on Microservices and the whole process will be backed by continuous deployment. Every commit to the repository will be deployed to production if it passed all tests. We'll program in JavaScript backed by AngularJS and Scala with Spray. Configuration management will be done with Ansible. Microservices and front-end will be built and deployed with Docker. Depending on where this leads us, there will be many other surprises on the way.
 
 This will be an exiting journey that starts with high-level requirements and ends with fully developed application deployed to production.
 
@@ -63,25 +63,68 @@ Once [bootstrap.sh](https://github.com/vfarcic/cd-workshop/blob/master/bootstrap
     - jenkins
 ```
 
-It will run roles java, docker, registry and jenkins. Java is the Jenkins dependency required for running slaves. Docker is needed for building and running containers. All the rest will run as Docker containers. There will be no other dependency, package or application that will be installed directly. Registry role runs Docker registry. Instead of using public one on hub.docker.com, we'll push all our containers to the private registry running on port 5000. Finally, jenkins role is run. This one might require a bit more explanation. Here's the list of tasks in the jenkins role.
+It will run roles java, docker, registry and jenkins. Java is the Jenkins dependency required for running slaves. Docker is needed for building and running containers. All the rest will run as Docker containers. There will be no other dependency, package or application that will be installed directly. Registry role runs Docker registry. Instead of using public one on hub.docker.com, we'll push all our containers to the private registry running on port 5000. Finally, jenkins role is run. This one might require a bit more explanation.
 
-TODO: Describe Jenkins role
+Here's the list of tasks in the jenkins role.
+
+```bash
+- name: Directories are present
+  file: path="{{ item }}" state=directory
+  with_items: directories
+
+- name: Config files are present
+  copy: src='{{ item }}' dest='{{ jenkins_directory }}/{{ item }}'
+  with_items: configs
+
+- name: Plugins are present
+  get_url: url='https://updates.jenkins-ci.org/{{ item }}' dest='{{ jenkins_directory }}/plugins'
+  with_items: plugins
+
+- name: Build job directories are present
+  file: path='{{ jenkins_directory }}/jobs/{{ item }}' state=directory
+  with_items: jobs
+
+- name: Build jobs are present
+  template: src=build.xml.j2 dest='{{ jenkins_directory }}/jobs/{{ item }}/config.xml' backup=yes
+  with_items: jobs
+
+- name: Deployment job directories are present
+  file: path='{{ jenkins_directory }}/jobs/{{ item }}-deployment' state=directory
+  with_items: jobs
+
+- name: Deployment jobs are present
+  template: src=deployment.xml.j2 dest='{{ jenkins_directory }}/jobs/{{ item }}-deployment/config.xml' backup=yes
+  with_items: jobs
+
+- name: Container is running
+  docker: name=jenkins image=vfarcic/jenkins ports=8080:8080 volumes=/data/jenkins:/jenkins
+
+- name: Reload
+  uri: url=http://localhost:8080/reload method=POST status_code=302
+  ignore_errors: yes
+```
 
 First we create directories where Jenkins plugins and slaves will reside. In order to speed up building containers, we're also creating the directory where ivy files (used by SBT) will be stored on host. That way containers will not need to download all dependencies every time we build docker containers.
 
 Once directories are created, we copy Jenkins configuration files and download few plugins.
 
-Next are Jenkins jobs. Since all jobs are going to do the same thing, we have two templates that will be used to create as many jobs as we need. One template is for building and the other one for deployment. Build jobs will clone the code repository from GitHub and run following commands (example with books-service created in the [Microservices Development with Scala, Spray, Mongodb, Docker and Ansible](http://technologyconversations.com/2015/01/26/microservices-development-with-scala-spray-mongodb-docker-and-ansible/) article):
+Next are Jenkins jobs. Since all jobs are going to do the same thing, we have two templates that will be used to create as many jobs as we need.
+
+Finally, once Jenkins job files are in the server, we are making sure that Jenkins container is up and running.
+
+Full source code with Ansible Jenkins role can be found in the [cd-workshop](https://github.com/vfarcic/cd-workshop/tree/master/ansible/roles/jenkins) repository.
+
+Let's go back to Jenkins job templates. One template is for building and the other one for deployment. Build jobs will clone the code repository from GitHub and run following commands (example with books-service created in the [Microservices Development with Scala, Spray, Mongodb, Docker and Ansible](http://technologyconversations.com/2015/01/26/microservices-development-with-scala-spray-mongodb-docker-and-ansible/) article.
 
 ```bash
-sudo docker build -t localhost:5000/books-service-tests docker/tests/
-sudo docker push localhost:5000/books-service-tests
+sudo docker build -t 192.168.50.91:5000/books-service-tests docker/tests/
+sudo docker push 192.168.50.91:5000/books-service-tests
 sudo docker run -t --rm \
   -v $PWD:/source \
   -v /data/.ivy2:/root/.ivy2/cache \
   localhost:5000/books-service-tests
-sudo docker build -t localhost:5000/books-service .
-sudo docker push localhost:5000/books-service
+sudo docker build -t 192.168.50.91:5000/books-service .
+sudo docker push 192.168.50.91:5000/books-service
 ```
 
 First we build the test container and push it to the private registry. Then we run tests. If previous command didn't fail, we'll build the books-service container and push it to the private registry. From here on, books-service is tested, built and ready to be deployed.
@@ -90,9 +133,23 @@ Before Docker, all my Jenkins servers ended up with a huge number of jobs. Many 
 
 With Docker comes simplicity. If we can assume that each project will have its own tests and application containers. If that's the case, all jobs can do the same thing. Build the test container and run it. If nothing fails, build the application container and push it to the registry. Finally, deploy it. All projects can be exactly the same if we can assume that each of them have their own docker files. Another advantage is that there's nothing to be installed on servers (besides Docker). All they need is Docker that will run containers we tell them to run.
 
-Unlike build jobs that are always the same (build with the specification from Dockerfile), deployments tends to get a bit more complicated. Even though applications are immutable and packed in containers, there are still few configuration files, environment variables and/or volumes to be set. That's where Ansible comes handy. We can have every deployment job in Jenkins the same with only name of the Ansible playbook differing. Deployment jobs simply run Ansible role that corresponds to the application we're deploying. It's still fairly simple in most cases. The difference when compared to deploying applications without Docker is huge. While with Docker we need to think only about data (application and all dependencies are packed inside containers), without it we would need not only to think what to install, what to update and how those changes might affect the rest of applications running on the same server or VM. That's one of the reasons why companies tend not to change their technology stack and, for example, still stick with Java 5 (or worse).
+Unlike build jobs that are always the same (build with the specification from Dockerfile), deployments tend to get a bit more complicated. Even though applications are immutable and packed in containers, there are still few configuration files, environment variables and/or volumes to be set. That's where Ansible comes handy. We can have every deployment job in Jenkins the same with only name of the Ansible playbook differing. Deployment jobs simply run Ansible role that corresponds to the application we're deploying. It's still fairly simple in most cases. The difference when compared to deploying applications without Docker is huge. While with Docker we need to think only about data (application and all dependencies are packed inside containers), without it we would need not only to think what to install, what to update and how those changes might affect the rest of applications running on the same server or VM. That's one of the reasons why companies tend not to change their technology stack and, for example, still stick with Java 5 (or worse).
 
-TODO: Describe books-service role
+As example, books-service tasks are listed below.
+
+```bash
+- name: Directory is present
+  file:
+    path=/data/books-service/db
+    state=directory
+
+- name: Container is running
+  docker:
+    name=books-service
+    image=192.168.50.91:5000/books-service
+    ports=9001:8080
+    volumes=/data/books-service/db:/data/db
+```
 
 Now we can open [http://localhost:8080](http://localhost:8080) and (almost) use Jenkins. Ansible tasks did not create credentials so we'll have to do that manually.
 
@@ -124,8 +181,6 @@ jobs:
 
 books-service job is scheduled to pull code from the repository every 5 minutes. This consumes resources and is slow. Better setup is to have a GitHub hook. With it build would be launched almost immediately after each push to the repository. More info can be found in the [GitHub Plugin](https://wiki.jenkins-ci.org/display/JENKINS/GitHub+Plugin#GitHubPlugin-TriggerabuildwhenachangeispushedtoGitHub) page. Similar setup can be done for almost any other type of code repository.
 
-TODO: Walk-through Jenkins UI
-
 Production Environment
 ----------------------
 
@@ -151,9 +206,9 @@ That's about it. Now we have an production VM where we can deploy applications. 
 Summary
 -------
 
-I hope you enjoyed setting up the Continuous Delivery/Deployment server. With Docker we can explore new was to build, test and deploy applications. One of the many benefits of containers is simplicity due to their immutability and self sufficiency. There are no reasons any more to have servers with huge number of packages installed. No more going through the hell of maintaining different versions required by different applications or spinning up new VM for every single application that should be tested or deployed.
+With Docker we can explore new ways to build, test and deploy applications. One of the many benefits of containers is simplicity due to their immutability and self sufficiency. There are no reasons any more to have servers with huge number of packages installed. No more going through the hell of maintaining different versions required by different applications or spinning up new VM for every single application that should be tested or deployed.
 
-But it's not only servers provisioning that got simplified with Docker. Ability to provide Docker file with each application means that Jenkins setup is greatly simplified. Instead of having tens, hundreds or even thousands of jobs with each of them specific to the application they are building, testing and deploying, we can simply make all (or most of) Jenkins jobs the same. Build with Dockerfile file, test with Dockerfile and, finally, deploy with Ansible (that also uses Dockerfile).
+But it's not only servers provisioning that got simplified with Docker. Ability to provide Docker file with each application means that Jenkins jobs are greatly simplified. Instead of having tens, hundreds or even thousands of jobs where each of them is specific to the application it is building, testing or deploying, we can simply make all (or most of) Jenkins jobs the same. Build with Dockerfile file, test with Dockerfile and, finally, deploy with Ansible (that also uses Dockerfile).
 
 We didn't touch the subject of post-deployment (functional, integration, stress, etc) tests that are required for successful Continuous Delivery and/or Deployment. We're also missing the way to deploy the application with zero-downtime. Both will be the subject of the next article that will continue where we left.
 

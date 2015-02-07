@@ -9,13 +9,13 @@ configs:
   - config.xml
 
 plugins:
-  - latest/github.hpi
-  - latest/git.hpi
-  - latest/credentials.hpi
-  - latest/scm-api.hpi
-  - latest/matrix-project.hpi
-  - latest/git-client.hpi
-  - latest/github-api.hpi
+  - github.hpi
+  - git.hpi
+  - credentials.jpi
+  - scm-api.hpi
+  - matrix-project.jpi
+  - git-client.hpi
+  - github-api.hpi
 
 jobs:
   - books-service
