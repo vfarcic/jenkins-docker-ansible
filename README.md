@@ -1,36 +1,9 @@
-This series tries to provide one possible way to develop applications. We'll go through the full applications lifecycle. We'll define high-level requirements and design, use BDD to define executable requirements and develop using TDD. Architecture will be based on Microservices and the whole process will be backed by continuous deployment. Every commit to the repository will be deployed to production if it passed all tests. We'll program in JavaScript backed by AngularJS and Scala with Spray. Configuration management will be done with Ansible. Microservices and front-end will be built and deployed with Docker. Depending on where this leads us, there will be many other surprises on the way.
+This article tries to provide one possible way to setup the Continuous Integration, Delivery or Deployment pipeline. We'll use [Jenkins](http://jenkins-ci.org/), [Docker](https://www.docker.com/), [Ansible](http://www.ansible.com) and [Vagrant](https://www.vagrantup.com/) to setup two servers. One will be used as a Jenkins server and the other as an imitation of production servers. First one will be used to checkout, test and build applications while the other for deployment and post-deployment tests.
 
-This will be an exiting journey that starts with high-level requirements and ends with fully developed application deployed to production.
-
-High Level Requirements
-=======================
-
-We are building Books Retailer application. We should have a web site that can be used on any device (desktop, tables and mobiles). Users of that site should be able to list and search for books, see their details and purchase them. Purchase can be done only by registered users. On the other hand, site administrators should be able to add new books and update or remove existing ones.
-
-High Level Design
+CI/CD Environment
 =================
 
-We'll build our application using Microservices architectural approach. Each service our application needs will be designed, developed, packed and deployed as a separate application. Each microservice will expose RESTful API that front-end, others services and third parties can use. Data will be stored in MongoDB.
-
-Front-end will be decoupled from back-end and communicate with it by sending RESTful JSON requests.
-
-Everything will be packed and deployed as self sufficient Docker containers.
-
-Environments
-============
-
-Since we will have several microservices and applications, each of the should have their own development environment. Those environments will be created using Vagrant and Ansible. Further on, we should have an environment with Jenkins that should handle our applications life-cycle from commit to deployment to production. Finally, there should be at least one environment for testing and one that should be used for production. All in all, there will be:
-
-* Development environments for each microservice and/or application.
-* One CD environment
-* Production environment
-
-We'll skip the first set of development environments since they will be done for each microservice and application separately.
- 
-CD Environment
---------------
-
-We'll set up Jenkins environment using Vagrant and Ansible. Vagrant will create a VM with Ubuntu and run the [bootstrap.sh](https://github.com/vfarcic/cd-workshop/blob/master/bootstrap.sh) script. The only purpose of that script is to install Ansible. Once that is done, Ansible will make sure that Docker is installed and Jenkins process is running.
+We'll set up Jenkins environment using Vagrant and Ansible. Vagrant will create a VM with Ubuntu and run the [bootstrap.sh](https://github.com/vfarcic/jenkins-docker-ansible/blob/master/bootstrap.sh) script. The only purpose of that script is to install Ansible. Once that is done, Ansible will make sure that Docker is installed and Jenkins process is running.
 
 As everything else in this article, Jenkins itself is packed as a [Docker container](https://registry.hub.docker.com/u/vfarcic/jenkins/dockerfile/) and deployed with Ansible. Please consult the [Continuous Deployment: Implementation with Ansible and Docker](http://technologyconversations.com/2014/12/29/continuous-deployment-implementation-with-ansible-and-docker/) article for more info.
 
@@ -48,9 +21,9 @@ config.vm.provision "shell", path: "bootstrap.sh"
 prod.vm.provision :shell, inline: 'ansible-playbook /vagrant/ansible/cd.yml -c local'
 ```
 
-First one runs the [bootstrap.sh](https://github.com/vfarcic/cd-workshop/blob/master/bootstrap.sh) script that install Ansible. We could use the [Vagrant Ansible Provisioner](https://docs.vagrantup.com/v2/provisioning/ansible.html) but that would require Ansible to be installed on the host machine. That is unnecessary dependency especially for Windows users who would have a hard time to setup Ansible.
+First one runs the [bootstrap.sh](https://github.com/vfarcic/jenkins-docker-ansible/blob/master/bootstrap.sh) script that install Ansible. We could use the [Vagrant Ansible Provisioner](https://docs.vagrantup.com/v2/provisioning/ansible.html) but that would require Ansible to be installed on the host machine. That is unnecessary dependency especially for Windows users who would have a hard time to setup Ansible.
 
-Once [bootstrap.sh](https://github.com/vfarcic/cd-workshop/blob/master/bootstrap.sh) is finished, Ansible playbook [cd.yml](https://github.com/vfarcic/cd-workshop/blob/master/ansible/cd.yml) is run.
+Once [bootstrap.sh](https://github.com/vfarcic/jenkins-docker-ansible/blob/master/bootstrap.sh) is finished, Ansible playbook [cd.yml](https://github.com/vfarcic/jenkins-docker-ansible/blob/master/ansible/cd.yml) is run.
  
 ```bash
 - hosts: localhost
@@ -112,7 +85,7 @@ Next are Jenkins jobs. Since all jobs are going to do the same thing, we have tw
 
 Finally, once Jenkins job files are in the server, we are making sure that Jenkins container is up and running.
 
-Full source code with Ansible Jenkins role can be found in the [cd-workshop](https://github.com/vfarcic/cd-workshop/tree/master/ansible/roles/jenkins) repository.
+Full source code with Ansible Jenkins role can be found in the [jenkins-docker-ansible](https://github.com/vfarcic/jenkins-docker-ansible/tree/master/ansible/roles/jenkins) repository.
 
 Let's go back to Jenkins job templates. One template is for building and the other one for deployment. Build jobs will clone the code repository from GitHub and run following commands (example with books-service created in the [Microservices Development with Scala, Spray, Mongodb, Docker and Ansible](http://technologyconversations.com/2015/01/26/microservices-development-with-scala-spray-mongodb-docker-and-ansible/) article.
 
@@ -122,7 +95,7 @@ sudo docker push 192.168.50.91:5000/books-service-tests
 sudo docker run -t --rm \
   -v $PWD:/source \
   -v /data/.ivy2:/root/.ivy2/cache \
-  localhost:5000/books-service-tests
+  192.168.50.91:5000/books-service-tests
 sudo docker build -t 192.168.50.91:5000/books-service .
 sudo docker push 192.168.50.91:5000/books-service
 ```
@@ -182,7 +155,7 @@ jobs:
 books-service job is scheduled to pull code from the repository every 5 minutes. This consumes resources and is slow. Better setup is to have a GitHub hook. With it build would be launched almost immediately after each push to the repository. More info can be found in the [GitHub Plugin](https://wiki.jenkins-ci.org/display/JENKINS/GitHub+Plugin#GitHubPlugin-TriggerabuildwhenachangeispushedtoGitHub) page. Similar setup can be done for almost any other type of code repository.
 
 Production Environment
-----------------------
+======================
 
 In order to simulate closer to reality situation, production environment will be a separate VM. At the moment we don't need anything installed on that VM. Later on, Jenkins will run Ansible that will make sure that the server is setup correctly for each application we deploy. We'll create this environment in the same way as the previous one.
 
@@ -204,50 +177,15 @@ ssh-copy-id 192.168.50.92 # Password is "vagrant"
 That's about it. Now we have an production VM where we can deploy applications. We can go back to Jenkins ([http://localhost:8080](http://localhost:8080)) and run the "books-service-deployment" job. When finished, service will be up and running on the port 9001.
 
 Summary
--------
+=======
 
 With Docker we can explore new ways to build, test and deploy applications. One of the many benefits of containers is simplicity due to their immutability and self sufficiency. There are no reasons any more to have servers with huge number of packages installed. No more going through the hell of maintaining different versions required by different applications or spinning up new VM for every single application that should be tested or deployed.
 
 But it's not only servers provisioning that got simplified with Docker. Ability to provide Docker file with each application means that Jenkins jobs are greatly simplified. Instead of having tens, hundreds or even thousands of jobs where each of them is specific to the application it is building, testing or deploying, we can simply make all (or most of) Jenkins jobs the same. Build with Dockerfile file, test with Dockerfile and, finally, deploy with Ansible (that also uses Dockerfile).
 
-We didn't touch the subject of post-deployment (functional, integration, stress, etc) tests that are required for successful Continuous Delivery and/or Deployment. We're also missing the way to deploy the application with zero-downtime. Both will be the subject of the next article that will continue where we left.
+We didn't touch the subject of post-deployment (functional, integration, stress, etc) tests that are required for successful Continuous Delivery and/or Deployment. We're also missing the way to deploy the application with zero-downtime. Both will be the subject of one of the next articles. We'll continue where we left and explore in more depth what should be done once the application is deployed.
 
-Source code for this article can be found in [cd-workshop](https://github.com/vfarcic/cd-workshop) repository.
+Source code for this article can be found in [jenkins-docker-ansible](https://github.com/vfarcic/jenkins-docker-ansible) repository.
 
 TODO: Change repo URL
 TODO: Add pictures
-
-Books Microservice
-==================
-
-TODO: Move above Environments
-
-The first piece of code we'll develop, test, build and deploy is the service that will provide RESTful JSON operations related to retrieval and administration of books. The code for this service is already available at [books-service repo](https://github.com/vfarcic/books-service). It is developed using [Scala](http://www.scala-lang.org/) with [Spray](http://spray.io/) and [MongoDB](http://www.mongodb.org/) for data storage. For more information about this service, please consult [Microservices Development with Scala, Spray, MongoDB, Docker and Ansible](http://technologyconversations.com/2015/01/26/microservices-development-with-scala-spray-mongodb-docker-and-ansible/) article.
-
-What we want to do with Jenkins is following:
-
-* Setup CD and production environments
-* Checkout the code from the repository on every commit
-* Run tests that do not require the application to be deployed (static analysis, unit tests)
-* Build the assembly
-* Build the application as a Docker container
-* Push the container to the registry
-* TODO: Deploy the application while maintaining the previous version operational and available for general use
-* TODO: Test the deployed application (functional, integration, stress, etc)
-* TODO: Redirect the public traffic from the previous version to the new one.
-* TODO: Stop the previous version from running
-
-If we do this, we'll have the full lifecycle from commit to production deployment without any manual action in between. Let's start!
-
-Checkout the code from the repository on every commit
------------------------------------------------------
-
-Normally this would require various installations on the Jenkins or a slave machine. If we are building different applications we would need to have everything needed for those builds installed (JDKs, Gradle, Maven, Python, NodeJS, DBs, etc). Managing dependencies needed for builds and tests execution can easily become overwhelming. On top of that, number of Jenkins jobs can easily become huge and unmanageable.
-
-With docker this can easily be simplified. Each project could have two Dockerfiles, one for testing and one for building the container with the actual application. All dependencies and scripts would be inside the container.
-
-
-
-
-
-TODO: Front-End
