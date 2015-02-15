@@ -39,12 +39,18 @@
   <builders>
     <hudson.tasks.Shell>
       <command>
-sudo docker build -t 192.168.50.91:5000/{{ item }}-tests docker/tests/
+# Build Tests
+mv Dockerfile Dockerfile.orig
+cp Dockerfile.test Dockerfile
+sudo docker build -t 192.168.50.91:5000/{{ item }}-tests .
+mv Dockerfile.orig Dockerfile
 sudo docker push 192.168.50.91:5000/{{ item }}-tests
+# Run Tests
 sudo docker run -t --rm \
   -v $PWD:/source \
   -v /data/.ivy2:/root/.ivy2/cache \
   192.168.50.91:5000/{{ item }}-tests
+# Build Application
 sudo docker build -t 192.168.50.91:5000/{{ item }} .
 sudo docker push 192.168.50.91:5000/{{ item }}</command>
     </hudson.tasks.Shell>
