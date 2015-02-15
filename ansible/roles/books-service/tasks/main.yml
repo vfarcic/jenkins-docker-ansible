@@ -12,7 +12,7 @@
 - name: Containers are absent
   docker:
     image: 192.168.50.91:5000/{{ item }}
-    name: books-service
+    name: "{{ item }}"
     state: absent
   with_items: images
   tags: [books-service]
@@ -26,6 +26,10 @@
     state: running
   tags: [books-service]
 
+- name: Integration tests are copied
+  copy: src=books-service-integ.sh dest=/opt/books-service-integ.sh
+  tags: [books-service]
+
 - name: Integration tests are run
-  shell: docker run -t --name books-service-tests -e TEST_TYPE=integ -e DOMAIN="http://172.17.42.1:8080" -v /data/.ivy2:/root/.ivy2 192.168.50.91:5000/books-service-tests
+  shell: /opt/books-service-integ.sh
   tags: [books-service]
