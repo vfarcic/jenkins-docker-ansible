@@ -14,8 +14,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     cd.vm.network :forwarded_port, host: 5000, guest: 5000
     cd.vm.network :forwarded_port, host: 2201, guest: 22, id: "ssh", auto_correct: true
     cd.vm.network "private_network", ip: "192.168.50.91"
-    cd.vm.provision "shell", path: "bootstrap.sh"
-    cd.vm.provision :shell, inline: 'ansible-playbook /vagrant/ansible/cd.yml -c local'
+    cd.vm.provision "ansible_local" do |ansible|
+      ansible.playbook = "ansible/cd.yml"
+    end
     cd.vm.hostname = "cd"
   end
   config.vm.define :prod do |prod|
