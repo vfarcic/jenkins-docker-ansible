@@ -1,2 +1,2 @@
 [books-service]
-192.168.50.92
+192.168.50.92 ansible_ssh_private_key_file=/vagrant/.vagrant/machines/prod/virtualbox/private_key
