@@ -6,6 +6,13 @@
   tags: [docker]
 
 - name: Docker is present
+  apt:
+    name: lxc-docker
+    state: present
+    force: yes
+  tags: [docker]
+
+- name: Docker is present
   apt: name=docker.io state=present
   tags: [docker]
 
