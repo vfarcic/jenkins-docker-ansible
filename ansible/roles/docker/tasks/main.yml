@@ -12,12 +12,10 @@
     force: yes
   tags: [docker]
 
-- name: Docker is present
-  apt: name=docker.io state=present
-  tags: [docker]
-
 - name: Python-pip is present
-  apt: name=python-pip state=present
+  apt:
+    name: python-pip
+    state: present
   tags: [docker]
 
 - name: Docker-py is present
