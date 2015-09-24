@@ -1,0 +1,1 @@
+DOCKER_OPTS="$DOCKER_OPTS --insecure-registry 192.168.50.91:5000"

@@ -1,23 +1,42 @@
 - name: Add Docker repository and update apt cache
   apt_repository:
-    repo: deb https://get.docker.com/ubuntu docker main
+    repo: deb https://apt.dockerproject.org/repo ubuntu-trusty main
     update_cache: yes
     state: present
   tags: [docker]
 
-- name: Docker is present
+- name: Old Docker is absent
   apt:
     name: lxc-docker
-    state: present
+    purge: yes
+    state: absent
+  tags: [docker]
+
+- name: Docker is present
+  apt:
+    name: docker-engine
+    state: latest
     force: yes
   tags: [docker]
 
 - name: Python-pip is present
-  apt:
-    name: python-pip
-    state: present
+  apt: name=python-pip state=present
   tags: [docker]
 
 - name: Docker-py is present
   pip: name=docker-py version=0.4.0 state=present
+  tags: [docker]
+
+- name: Files are present
+  copy:
+    src: docker
+    dest: /etc/default/docker
+  register: copy_result
+  tags: [docker]
+
+- name: Docker service is restarted
+  service:
+    name: docker
+    state: restarted
+  when: copy_result|changed
   tags: [docker]
