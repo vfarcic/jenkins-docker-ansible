@@ -6,6 +6,6 @@ echo "Installing Ansible..."
 #apt-get update
 #apt-get install -y ansible
 apt-get install -y python-pip python-dev
-pip install ansible==1.9.1
+pip install ansible==1.9.2
 mkdir /etc/ansible
 touch /etc/ansible/hosts
