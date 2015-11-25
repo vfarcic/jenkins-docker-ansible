@@ -24,6 +24,7 @@
   file:
     path='{{ jenkins_directory }}/jobs/{{ item }}'
     state=directory
+    mode=0777
   with_items: jobs
   tags: [jenkins]
 
@@ -31,6 +32,7 @@
   template:
     src=build.xml.j2
     dest='{{ jenkins_directory }}/jobs/{{ item }}/config.xml'
+    mode=0777
     backup=yes
   with_items: jobs
   tags: [jenkins]
@@ -39,6 +41,7 @@
   file:
     path='{{ jenkins_directory }}/jobs/{{ item }}-deployment'
     state=directory
+    mode=0777
   with_items: jobs
   tags: [jenkins]
 
@@ -47,15 +50,16 @@
     src=deployment.xml.j2
     dest='{{ jenkins_directory }}/jobs/{{ item }}-deployment/config.xml'
     backup=yes
+    mode=0777
   with_items: jobs
   tags: [jenkins]
 
 - name: Container is running
   docker:
     name=jenkins
-    image=vfarcic/jenkins
+    image=jenkins
     ports=8080:8080
-    volumes=/data/jenkins:/jenkins
+    volumes=/data/jenkins:/var/jenkins_home
   tags: [jenkins]
 
 - name: Reload
