@@ -61,11 +61,3 @@
     ports=8080:8080
     volumes=/data/jenkins:/var/jenkins_home
   tags: [jenkins]
-
-- name: Reload
-  uri:
-    url=http://localhost:8080/reload
-    method=POST
-    status_code=302
-  ignore_errors: yes
-  tags: [jenkins]
