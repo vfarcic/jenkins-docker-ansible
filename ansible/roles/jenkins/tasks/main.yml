@@ -2,7 +2,7 @@
   file:
     path="{{ item }}"
     state=directory
-    mode=777
+    mode=0777
   with_items: directories
   tags: [jenkins]
 
@@ -10,6 +10,7 @@
   copy:
     src='{{ item }}'
     dest='{{ jenkins_directory }}/{{ item }}'
+    mode=0777
   with_items: configs
   tags: [jenkins]
 
@@ -17,6 +18,7 @@
   copy:
     src='{{ item }}'
     dest='{{ jenkins_directory }}/plugins/{{ item }}'
+    mode=0777
   with_items: plugins
   tags: [jenkins]
 
