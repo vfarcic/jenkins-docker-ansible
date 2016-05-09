@@ -59,7 +59,7 @@
 - name: Container is running
   docker:
     name=jenkins
-    image=jenkins
+    image=jenkins:1.642.4
     ports=8080:8080
     volumes=/data/jenkins:/var/jenkins_home
   tags: [jenkins]
