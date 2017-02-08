@@ -5,7 +5,7 @@
   tags: [registry]
 
 - name: Container is running
-  docker:
+  docker_container:
     name=registry
     image=registry
     ports=5000:5000
