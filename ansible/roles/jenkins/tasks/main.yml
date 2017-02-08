@@ -57,7 +57,7 @@
   tags: [jenkins]
 
 - name: Container is running
-  docker:
+  docker_container:
     name=jenkins
     image=jenkins:1.642.4
     ports=8080:8080

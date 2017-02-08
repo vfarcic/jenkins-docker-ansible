@@ -9,14 +9,14 @@
   tags: [books-service]
 
 - name: Container is absent
-  docker:
+  docker_container:
     image=192.168.50.91:5000/books-service
     name=books-service
     state=absent
   tags: [books-service]
 
 - name: Container is running
-  docker:
+  docker_container:
     name=books-service
     image=192.168.50.91:5000/books-service
     ports=9001:8080
