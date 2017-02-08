@@ -30,4 +30,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if Vagrant.has_plugin?("vagrant-cachier")
     config.cache.scope = :box
   end
+# if Vagrant.has_plugin?("vagrant-proxyconf")
+#   config.proxy.http     = "http://proxy.company.com:8080/"
+#   config.proxy.https    = "http://proxy.company.com:8080/"
+#   config.proxy.no_proxy = "localhost,127.0.0.1"
+# end
 end
