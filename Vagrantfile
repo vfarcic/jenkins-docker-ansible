@@ -17,6 +17,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     cd.vm.network :forwarded_port, host: 5000, guest: 5000
     cd.vm.network :forwarded_port, host: 2201, guest: 22, id: "ssh", auto_correct: true
     cd.vm.network "private_network", ip: "192.168.50.91"
+    # added dynamic swap file management to prevent "Free Swap Space: 0 B" warning in Jenkins
+    cd.vm.provision :shell, inline: 'apt-get install swapspace -y'
     cd.vm.provision "shell", path: "bootstrap.sh"
     cd.vm.provision :shell, inline: 'ansible-playbook /vagrant/ansible/cd.yml -c local -v'
     cd.vm.hostname = "cd"
